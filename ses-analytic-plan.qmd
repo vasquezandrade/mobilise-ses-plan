@@ -13,10 +13,6 @@ format:
     fontsize: 11pt
     embed-resources: true
     smooth-scroll: true
-  docx:
-    reference-doc: mobilise-reference.docx
-    toc: false
-    number-sections: false
 lang: en
 bibliography: references.bib
 execute:
