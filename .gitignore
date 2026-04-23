@@ -1,0 +1,19 @@
+# Rendered output cache and support files
+*_cache/
+*_files/
+.quarto/
+_site/
+
+# R working files
+*.rds
+*.rda
+*.RData
+*.Rhistory
+
+# Backup files
+*.bak
+*.bak-*
+
+# OS files
+.DS_Store
+Thumbs.db

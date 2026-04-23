@@ -1,0 +1,179 @@
+---
+title: "Area-Level SES for Mobilise-D COPD"
+subtitle: "At-a-Glance Analytic Plan"
+author: "Roger Vásquez Andrade"
+date: today
+date-format: long
+format:
+  html:
+    toc: true
+    toc-location: left
+    theme: cosmo
+    mainfont: Calibri
+    fontsize: 11pt
+    embed-resources: true
+    smooth-scroll: true
+  docx:
+    reference-doc: mobilise-reference.docx
+    toc: false
+    number-sections: false
+lang: en
+bibliography: references.bib
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+#| include: false
+library(gt)
+library(dplyr)
+library(tibble)
+```
+
+# 1. What this plan is about
+
+This note lists the area-level socio-economic variables I propose to use in the Mobilise-D COPD mediation analysis. It covers the seven COPD recruitment (CVS) sites: Athens, Barcelona, Grosshansdorf, Leuven, London, Newcastle, and Zurich.
+
+From the broader set of area-level SES variables reviewed in the main report, these seven stand out as the most comparable across countries and the best at describing socio-economic context at area level. Of the seven, five are available in all six CVS countries and I recommend using them. The remaining two are missing in too many countries, so I set them aside.
+
+::: {.callout-note appearance="simple"}
+**Recommended variables (5 of 7 candidates)**
+
+| ✓ | Variable | Role |
+|---|---|---|
+| ✓ | % tertiary education (ISCED 5+) | **Co-primary exposure** |
+| ✓ | Composite deprivation index | **Co-primary exposure** |
+| ✓ | Median household income | **Exposure** |
+| ✓ | Population density | Covariate |
+| ✓ | Unemployment rate | **Exposure** |
+
+Not recommended: Eurostat 1 km grid demographics (missing CH, GB), Eurostat 1 km grid employment (missing CH, DE, GB).
+:::
+
+# 2. Are the sources reliable?
+
+All variables in this plan come from two kinds of sources: national or international statistical bureaus (INE in Spain, ONS in the UK, Eurostat, StatBel in Belgium, ELSTAT in Greece, BFS in Switzerland, BBSR/INKAR in Germany) and peer-reviewed composite-deprivation indices (English IMD 2019, IP2011 / Duque 2021 for Spain, GISD for Germany, BIMD for Belgium). Each has a published method and is widely used in health-outcome research. The main references for every dataset are listed in [§Objective 2 of the main report](https://vasquezandrade.github.io/mobilise-ses-report/#sec-evidence-sources), which you can check to look up a specific source.
+
+# 3. What data do I have, and where? {#sec-inventory}
+
+Table 1 shows the geographic level at which each variable is available for each CVS country.
+
+**How to read Table 1.** Each cell gives the geographic unit plus the mean number of residents per unit, in parentheses. "Section" is shorthand for census section, a small sub-municipal unit used for census reporting (local names: statistical sector in BE, sección censal in ES, LSOA in GB, Statistische Zone in CH). A hyphen (-) means the variable is not available at any sub-regional level. Ticked (✓) rows are the recommended variables; unticked rows are excluded. The right-hand column shows the proposed analytic role.
+
+```{r tbl-plan}
+#| label: tbl-plan
+#| tbl-cap: "Area-level variables by country and geographic level"
+tribble(
+  ~check, ~Variable, ~BE_Leuven, ~CH_Zurich, ~DE_Grosshansdorf, ~ES_Barcelona, ~GB_London_Newcastle, ~GR_Athens, ~Role,
+  "✓", "% tertiary education (ISCED 5+)",
+     "Section (~585)", "Section (~2,010)", "District (~208k)", "Section (~1,300)", "Section (~1,670)", "Municipality (~637k)",
+     "Co-primary exposure",
+  "✓", "Composite deprivation",
+     "Section (~585)", "Section (~2,010)*", "District (~208k)", "Section (~1,300)", "Section (~1,670)", "Municipality (~637k)*",
+     "Co-primary exposure",
+  "✓", "Median household income",
+     "Section (~585)", "Municipality (~434k)", "District (~208k)", "Section (~1,300)", "Section cluster (~8,200)", "Region (~986k)",
+     "Exposure",
+  "✓", "Population density",
+     "Section / 1 km grid", "100 m grid", "100 m grid", "Section / 1 km grid", "Section", "1 km grid",
+     "Covariate",
+  "✓", "Unemployment rate",
+     "Section (~585)", "-", "District (~208k)", "Section (~1,300)", "Section (~1,670)", "Region (~986k)",
+     "Exposure",
+  "", "Eurostat 1 km demographics",
+     "1 km grid", "-", "1 km grid", "1 km grid", "-", "1 km grid",
+     "Covariate",
+  "", "Eurostat 1 km employment",
+     "1 km grid", "-", "-", "1 km grid", "-", "1 km grid",
+     "Covariate"
+) |>
+  gt() |>
+  cols_label(
+    check = "", Variable = "Variable",
+    BE_Leuven = "BE (Leuven)", CH_Zurich = "CH (Zurich)",
+    DE_Grosshansdorf = "DE (Grosshansdorf)", ES_Barcelona = "ES (Barcelona)",
+    GB_London_Newcastle = "GB (London, Newcastle)", GR_Athens = "GR (Athens)",
+    Role = "Role"
+  ) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = Role,
+                                   rows = Role %in% c("Co-primary exposure", "Exposure"))) |>
+  tab_source_note("* proxy composite (CH: Swiss-SEP restricted; GR: no national index, constructed from single-domain variables).") |>
+  tab_source_note('"Section" = census section (small sub-municipal statistical unit).') |>
+  tab_options(table.font.size = px(11))
+```
+
+**What Table 1 shows.** Coverage is most complete in Spain and Belgium, where every recommended variable is at census section. Germany is at the next level up: all five variables at district level (~208k per district). The UK is almost as complete as Spain, except that income is at a unit five times larger than the others. Switzerland and Greece are the least complete: Switzerland has no sub-municipal unemployment; Greece reports income and unemployment only at regional level (~986k per region). The two excluded Eurostat-grid variables drop out because the UK and Switzerland are not in the Eurostat 1 km Grid V2.2, and Germany did not report employment.
+
+Two natural follow-up questions arise from Table 1, and they are answered in the next two sections:
+
+- **§4.** Can I compare the same variable across countries? This asks whether the numbers themselves are equivalent from one country to the next.
+- **§5.** Within a single country, are all five variables on the same geographic unit? This asks whether I can analyse them together at one level of detail.
+
+# 4. Can I compare variables across countries?
+
+For two of the five variables, yes: the numbers are directly comparable. For the other three, no: only the within-country rank is comparable.
+
+**Directly comparable** (can combine across countries):
+
+- **% tertiary education (ISCED 5+).** All six censuses use the same EU-wide classification, ISCED 2011. The only thing left to align is the age band; I standardise to ages 25 to 64, which covers the full working-age adult population.
+- **Population density.** Inhabitants per km² means the same thing in every country. The grids differ in cell size (Eurostat 1 km for most; 100 m national grids for DE and CH) but not in what they measure.
+
+**Comparable only as within-country rank** (quintile 1 = "most deprived neighbourhood in this country"):
+
+- **Composite deprivation.** Every country's index is built from different inputs and weights. I cannot put GISD (Germany), IMD (UK), and IP2011 (Spain) on one scale and compare numbers. But a resident in quintile 1 means "most deprived neighbourhood in their country" everywhere, and that rank is comparable across countries [@macintyre2002; @stringhini2017].
+- **Median household income.** Countries differ on gross vs net, household vs individual, and whether income is adjusted for household size. The distributions are not equivalent, so absolute euro amounts cannot be combined.
+- **Unemployment rate.** Some countries report registered unemployment (DE, BE); others use census self-reported economic activity (ES, GB, GR). The base groups and time windows differ. An internationally standardised version (from the ILO) exists but only at regional level, which is too large a unit.
+
+# 5. Within a country, are the variables on the same geographic unit?
+
+Even when a variable is available, the unit can differ from one variable to another inside the same country. Table 2 shows this side-by-side.
+
+**How to read Table 2.** Each row is one country. The five middle columns give the unit at which each recommended variable is available. The right-hand column summarises the alignment: ✓✓ = all five sit at the same, finest unit; ✓ = all five sit at one common unit; ✗ = mixed units, with a note on which variable is the odd one out.
+
+```{r tbl-alignment}
+#| label: tbl-alignment
+#| tbl-cap: "Alignment of the five recommended variables within each country"
+tribble(
+  ~Country, ~Education, ~Composite, ~Income, ~Density, ~Unemployment, ~Aligned,
+  "ES (Barcelona)",
+    "Section (~1,300)", "Section (~1,300)", "Section (~1,300)",
+    "Section (~1,300)", "Section (~1,300)",
+    "✓✓ all at census section",
+  "BE (Leuven)",
+    "Section (~585)", "Section (~585)", "Section (~585)",
+    "Section (~585)", "Section (~585)",
+    "✓ all at census section",
+  "DE (Grosshansdorf)",
+    "District (~208k)", "District (~208k)", "District (~208k)",
+    "100 m grid", "District (~208k)",
+    "✓ all at district",
+  "GB (London, Newcastle)",
+    "Section (~1,670)", "Section (~1,670)", "Section cluster (~8,200)",
+    "1 km grid", "Section (~1,670)",
+    "✗ income at larger unit",
+  "CH (Zurich)",
+    "Section (~2,010)", "Section (~2,010)", "Municipality (~434k)",
+    "100 m grid", "-",
+    "✗ mixed",
+  "GR (Athens)",
+    "Municipality (~637k)", "Municipality (~637k)", "Region (~986k)",
+    "1 km grid", "Region (~986k)",
+    "✗ mixed"
+) |>
+  gt() |>
+  tab_options(table.font.size = px(11)) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_body(columns = Aligned))
+```
+
+**What Table 2 shows.**
+
+- **Barcelona (ES) and Leuven (BE).** All five variables at the same small unit (census section). Easiest case: a single neighbourhood-level analysis is available out of the box.
+- **Grosshansdorf (DE).** All five at district (~208k per district). Uniform, but at a larger unit than ES or BE.
+- **London and Newcastle (GB).** Four variables at neighbourhood (census section, ~1,670). Only income is at a larger unit, a section cluster of ~8,200. One small step (combining up to the larger unit) is needed for a single-unit analysis.
+- **Zurich (CH) and Athens (GR).** Three or four different units in one country. These are the hardest sites. Zurich has no sub-municipal unemployment, and income is only at municipality. Athens has income and unemployment only at region (~986k), while education and composite are at municipality.
+
+**What this means for the analysis.** In ES, BE, DE, and (mostly) GB, I can run one single per-site analysis at one geographic unit. In CH and GR, I either combine the smaller variables up to the largest common unit, or analyse each variable at its own unit and combine results via within-country quintiles.
